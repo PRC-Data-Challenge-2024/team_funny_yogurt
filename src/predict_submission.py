@@ -22,6 +22,12 @@ CATEGORICAL_FEATURES = params["categorical_features"]
 data = pd.read_csv(INPUT_PATH['data'])
 flight_id = data['flight_id']
 
+submission_data = pd.read_csv(INPUT_PATH['submission'])
+submission_ids = submission_data['flight_id']
+
+train_data = pd.read_csv(INPUT_PATH['train'])
+mean_tow = train_data['tow'].mean()
+
 with open(INPUT_PATH['selected_features'], 'r') as f:
     selected_features = json.load(f)
 
@@ -36,6 +42,10 @@ predictions = model.predict(data)
 
 submission = pd.DataFrame(
     {"flight_id": flight_id, "tow": predictions})
+
+submission_ids = submission_ids[~submission_ids.isin(submission['flight_id'])]
+submission = pd.concat(
+    [submission, pd.DataFrame({"flight_id": submission_ids, "tow": mean_tow})])
 
 submission.to_csv(OUTPUT_PATH, index=False)
 

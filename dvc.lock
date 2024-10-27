@@ -251,8 +251,8 @@ stages:
       size: 5410344
     - path: src/predict_submission.py
       hash: md5
-      md5: 2c46340cac1febb1ec94724dd5f581a3
-      size: 1032
+      md5: d326bb8f458412acbd5603d3d8b478a9
+      size: 1430
     params:
       params.yaml:
         predict_submission.input_path.data: data/processed/flights_test.csv
@@ -261,8 +261,8 @@ stages:
     outs:
     - path: data/processed/predictions_submission.csv
       hash: md5
-      md5: 4cc401262a18103bc1099a58b07949a5
-      size: 2957115
+      md5: 11ed9359d2601f2744335def0f4f03f9
+      size: 4445567
   train_catboost:
     cmd: python3 src/train_catboost.py
     deps:

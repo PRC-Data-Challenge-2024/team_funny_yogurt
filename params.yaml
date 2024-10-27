@@ -73,13 +73,6 @@ baseline_model:
   hparams_grid:
     alpha: [0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
 
-predict_submission:
-  input_path:
-    model: models/catboost_model.pkl
-    data: data/processed/flights_test.csv
-    selected_features: models/selected_features.json
-  output_path: data/processed/predictions_submission.csv
-
 train_catboost:
   input_path:
     train_data: data/processed/train.csv
@@ -95,3 +88,12 @@ train_catboost:
   random_search_iters: 20
   cv_folds: 3
   early_stopping_rounds: 15
+
+predict_submission:
+  input_path:
+    model: models/catboost_model.pkl
+    data: data/processed/flights_test.csv
+    train: data/processed/train.csv
+    selected_features: models/selected_features.json
+    submission: data/raw/final_submission_set.csv
+  output_path: data/processed/predictions_submission.csv
