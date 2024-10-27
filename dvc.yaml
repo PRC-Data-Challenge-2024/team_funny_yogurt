@@ -96,3 +96,40 @@ stages:
     outs:
       - ${baseline_model.output_path}:
           persist: true
+
+  train_catboost:
+    cmd: python3 src/train_catboost.py
+    deps:
+      - src/train_catboost.py
+      - ${train_catboost.input_path.train_data}
+      - ${train_catboost.input_path.validation_data}
+      - ${train_catboost.input_path.selected_features}
+    params:
+      - train_catboost.output_path
+      - train_catboost.input_path.train_data
+      - train_catboost.input_path.validation_data
+      - train_catboost.params_grid
+      - train_catboost.early_stopping_rounds
+      - train_catboost.cv_folds
+      - train_catboost.random_search_iters
+      - all.dtypes
+      - all.categorical_features
+      - all.target
+      - all.random_state
+    outs:
+      - ${train_catboost.output_path}:
+          persist: true
+
+  predict_submission:
+    cmd: python3 src/predict_submission.py
+    deps:
+      - src/predict_submission.py
+      - ${predict_submission.input_path.data}
+      - ${predict_submission.input_path.model}
+    params:
+      - predict_submission.output_path
+      - predict_submission.input_path.data
+      - predict_submission.input_path.model
+    outs:
+      - ${predict_submission.output_path}:
+          persist: true

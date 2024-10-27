@@ -238,3 +238,125 @@ stages:
       hash: md5
       md5: c4b63f1440b5d8ebfe87d8fdb34901fb
       size: 1494
+  predict_submission:
+    cmd: python3 src/predict_submission.py
+    deps:
+    - path: data/processed/flights_test.csv
+      hash: md5
+      md5: 0593450610d3c09ac6db765190f02079
+      size: 14833423
+    - path: models/catboost_model.pkl
+      hash: md5
+      md5: acab062421fe9188a0abac5e136716d3
+      size: 5410344
+    - path: src/predict_submission.py
+      hash: md5
+      md5: 2c46340cac1febb1ec94724dd5f581a3
+      size: 1032
+    params:
+      params.yaml:
+        predict_submission.input_path.data: data/processed/flights_test.csv
+        predict_submission.input_path.model: models/catboost_model.pkl
+        predict_submission.output_path: data/processed/predictions_submission.csv
+    outs:
+    - path: data/processed/predictions_submission.csv
+      hash: md5
+      md5: 4cc401262a18103bc1099a58b07949a5
+      size: 2957115
+  train_catboost:
+    cmd: python3 src/train_catboost.py
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 1e640f593c737c41f391e4081a79930c
+      size: 35749633
+    - path: data/processed/val.csv
+      hash: md5
+      md5: dd6bd2759ce42f087cd46d9e81cbab25
+      size: 729935
+    - path: models/selected_features.json
+      hash: md5
+      md5: 03bb75f5bd47e96b18af6ca4101f6ea1
+      size: 228
+    - path: src/train_catboost.py
+      hash: md5
+      md5: 06a04ba7b573cd240c1b939c95145810
+      size: 2390
+    params:
+      params.yaml:
+        all.categorical_features:
+        - adep
+        - country_code_adep
+        - ades
+        - country_code_ades
+        - aircraft_type
+        - wtc
+        - airline
+        all.dtypes:
+          flight_id: int64,
+          maximum_altitude: float64,
+          mean_altitude: float64,
+          mean_ground_speed: float64,
+          mean_vertical_rate: float64,
+          adep: str,
+          country_code_adep: str,
+          ades: str,
+          country_code_ades: str,
+          aircraft_type: str,
+          wtc: str,
+          airline: str,
+          flight_duration: int64,
+          taxiout_time: int64,
+          flown_distance: int64,
+          tow: float64
+        all.random_state: 98
+        all.target: tow
+        train_catboost.cv_folds: 3
+        train_catboost.early_stopping_rounds: 15
+        train_catboost.input_path.train_data: data/processed/train.csv
+        train_catboost.input_path.validation_data: data/processed/val.csv
+        train_catboost.output_path: models/catboost_model.pkl
+        train_catboost.params_grid:
+          border_count:
+          - 32
+          - 5
+          - 10
+          - 20
+          - 50
+          - 100
+          - 200
+          depth:
+          - 3
+          - 1
+          - 2
+          - 6
+          - 4
+          - 5
+          - 7
+          - 8
+          - 9
+          - 10
+          iterations:
+          - 250
+          - 100
+          - 500
+          - 1000
+          l2_leaf_reg:
+          - 3
+          - 1
+          - 5
+          - 10
+          - 100
+          learning_rate:
+          - 0.03
+          - 0.001
+          - 0.01
+          - 0.1
+          - 0.2
+          - 0.3
+        train_catboost.random_search_iters: 20
+    outs:
+    - path: models/catboost_model.pkl
+      hash: md5
+      md5: acab062421fe9188a0abac5e136716d3
+      size: 5410344
