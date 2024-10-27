@@ -1,3 +1,32 @@
+all:
+  random_state: 98
+  dtypes:
+    flight_id: int64,
+    maximum_altitude: float64,
+    mean_altitude: float64,
+    mean_ground_speed: float64,
+    mean_vertical_rate: float64,
+    adep: str,
+    country_code_adep: str,
+    ades: str,
+    country_code_ades: str,
+    aircraft_type: str,
+    wtc: str,
+    airline: str,
+    flight_duration: int64,
+    taxiout_time: int64,
+    flown_distance: int64,
+    tow: float64
+  categorical_features: [
+    'adep',
+    'country_code_adep',
+    'ades',
+    'country_code_ades',
+    'aircraft_type',
+    'wtc',
+    'airline'
+  ]
+  target: tow
 get_data:
   output_path: data/raw
 cleaning:
@@ -12,5 +41,60 @@ aggregate_tracks:
 merge_datasets:
   input_path:
     tracks: data/interim/aggregate_tracks
-    flight_list: data/raw/challenge_set.csv
-  output_path: data/processed/flights.csv
+    train_flight_list: data/raw/challenge_set.csv
+    test_flight_list: data/raw/final_submission_set.csv
+  output_path: 
+    train: data/processed/flights_train.csv
+    test: data/processed/flights_test.csv
+  cols_to_drop: [
+    'date',
+    'callsign',
+    'name_adep',
+    'name_ades',
+    'actual_offblock_time',
+    'arrival_time'
+  ]
+split_data:
+  input_path: data/processed/flights_train.csv
+  output_path: 
+    train: data/processed/train.csv
+    val: data/processed/val.csv
+    tow_mean: data/processed/tow_mean.txt
+  train_fraction: 0.98
+
+feature_selection:
+  input_path: data/processed/train.csv
+  output_path: models/selected_features.json
+  fs_validation_frac: 0.05
+
+baseline_model:
+  input_path: data/processed/train.csv
+  output_path: models/baseline_model.pkl
+  baseline_validation_frac: 0.05
+  hparams_grid:
+    alpha: [0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
+
+train_catboost:
+  input_path:
+    train_data: data/processed/train.csv
+    validation_data: data/processed/val.csv
+    selected_features: models/selected_features.json
+  output_path: models/catboost_model.pkl
+  params_grid:
+    border_count: [32, 5, 10, 20, 50, 100, 200]
+    depth: [3, 1, 2, 6, 4, 5, 7, 8, 9, 10]
+    iterations: [250, 100, 500, 1000]
+    l2_leaf_reg: [3, 1, 5, 10, 100]
+    learning_rate: [0.03, 0.001, 0.01, 0.1, 0.2, 0.3]
+  random_search_iters: 20
+  cv_folds: 3
+  early_stopping_rounds: 15
+
+predict_submission:
+  input_path:
+    model: models/catboost_model.pkl
+    data: data/processed/flights_test.csv
+    tow_mean: data/processed/tow_mean.txt
+    selected_features: models/selected_features.json
+    submission: data/raw/final_submission_set.csv
+  output_path: data/processed/predictions_submission.csv

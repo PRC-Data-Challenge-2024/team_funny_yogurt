@@ -13,16 +13,16 @@ stages:
     outs:
     - path: data/raw
       hash: md5
-      md5: c5d558a971ab553228499a8e7d1c9b23.dir
-      size: 170130869140
+      md5: 2c7d010422d14cbd4d1aefad53a81635.dir
+      size: 306493049022
       nfiles: 368
   cleaning:
     cmd: python3 src/cleaning.py
     deps:
     - path: data/raw
       hash: md5
-      md5: c5d558a971ab553228499a8e7d1c9b23.dir
-      size: 170130869140
+      md5: 2c7d010422d14cbd4d1aefad53a81635.dir
+      size: 306493049022
       nfiles: 368
     - path: src/cleaning.py
       hash: md5
@@ -35,16 +35,16 @@ stages:
     outs:
     - path: data/interim/clean_tracks
       hash: md5
-      md5: aca72256b5a6fb382bd4a305b1bd2fde.dir
-      size: 98217631261
+      md5: d1244441d24831ef4cac43514249c91d.dir
+      size: 116041291160
       nfiles: 364
   aggregate_tracks:
     cmd: python3 src/aggregate_tracks.py
     deps:
     - path: data/interim/clean_tracks
       hash: md5
-      md5: aca72256b5a6fb382bd4a305b1bd2fde.dir
-      size: 98217631261
+      md5: d1244441d24831ef4cac43514249c91d.dir
+      size: 116041291160
       nfiles: 364
     - path: src/aggregate_tracks.py
       hash: md5
@@ -57,32 +57,311 @@ stages:
     outs:
     - path: data/interim/aggregate_tracks
       hash: md5
-      md5: d1142dee983bc4d212755747976c7143.dir
-      size: 12959333
+      md5: 53fc85ccbab154e8e83b8dcd74f7cc24.dir
+      size: 18360123
       nfiles: 364
   merge_datasets:
     cmd: python3 src/merge_datasets.py
     deps:
     - path: data/interim/aggregate_tracks
       hash: md5
-      md5: d1142dee983bc4d212755747976c7143.dir
-      size: 12959333
+      md5: 53fc85ccbab154e8e83b8dcd74f7cc24.dir
+      size: 18360123
       nfiles: 364
     - path: data/raw/challenge_set.csv
       hash: md5
       md5: fad9443429290efeb4b959ab447e9308
       size: 70759721
+    - path: data/raw/final_submission_set.csv
+      hash: md5
+      md5: 992da3c2693aaeee1fa62c5731a1a37d
+      size: 29278198
     - path: src/merge_datasets.py
       hash: md5
-      md5: 88977bc3132a9902b2820c0a4a3aca39
-      size: 1415
+      md5: fd2fc3b7fe060c9c36f1c3721807971d
+      size: 2059
     params:
       params.yaml:
-        merge_datasets.input_path.flight_list: data/raw/challenge_set.csv
+        merge_datasets.input_path.test_flight_list: data/raw/final_submission_set.csv
         merge_datasets.input_path.tracks: data/interim/aggregate_tracks
-        merge_datasets.output_path: data/processed/flights.csv
+        merge_datasets.input_path.train_flight_list: data/raw/challenge_set.csv
+        merge_datasets.output_path:
+          train: data/processed/flights_train.csv
+          test: data/processed/flights_test.csv
     outs:
-    - path: data/processed/flights.csv
+    - path: data/processed/flights_test.csv
       hash: md5
-      md5: adfd1648fa61d9ec7a5d322d7162ce11
-      size: 79481688
+      md5: 0593450610d3c09ac6db765190f02079
+      size: 14833423
+    - path: data/processed/flights_train.csv
+      hash: md5
+      md5: 511d5341f54b68d26b511e6ed758e744
+      size: 36584582
+  split_data:
+    cmd: python3 src/split_data.py
+    deps:
+    - path: data/processed/flights_train.csv
+      hash: md5
+      md5: 511d5341f54b68d26b511e6ed758e744
+      size: 36584582
+    - path: src/split_data.py
+      hash: md5
+      md5: f810ddfef8866dd81bb4023c3ce51a52
+      size: 1149
+    params:
+      params.yaml:
+        all.dtypes:
+          flight_id: int64,
+          maximum_altitude: float64,
+          mean_altitude: float64,
+          mean_ground_speed: float64,
+          mean_vertical_rate: float64,
+          adep: str,
+          country_code_adep: str,
+          ades: str,
+          country_code_ades: str,
+          aircraft_type: str,
+          wtc: str,
+          airline: str,
+          flight_duration: int64,
+          taxiout_time: int64,
+          flown_distance: int64,
+          tow: float64
+        all.random_state: 98
+        all.target: tow
+        split_data.input_path: data/processed/flights_train.csv
+        split_data.output_path:
+          train: data/processed/train.csv
+          val: data/processed/val.csv
+          tow_mean: data/processed/tow_mean.txt
+    outs:
+    - path: data/processed/tow_mean.txt
+      hash: md5
+      md5: 1e6d81a8a21702512d786e0eacdd4370
+      size: 17
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 1e640f593c737c41f391e4081a79930c
+      size: 35749633
+    - path: data/processed/val.csv
+      hash: md5
+      md5: dd6bd2759ce42f087cd46d9e81cbab25
+      size: 729935
+  feature_selection:
+    cmd: python3 src/feature_selection.py
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 1e640f593c737c41f391e4081a79930c
+      size: 35749633
+    - path: src/feature_selection.py
+      hash: md5
+      md5: fa05ab5995f50c6a1e6ebfd5327d5bfa
+      size: 1595
+    params:
+      params.yaml:
+        all.categorical_features:
+        - adep
+        - country_code_adep
+        - ades
+        - country_code_ades
+        - aircraft_type
+        - wtc
+        - airline
+        all.dtypes:
+          flight_id: int64,
+          maximum_altitude: float64,
+          mean_altitude: float64,
+          mean_ground_speed: float64,
+          mean_vertical_rate: float64,
+          adep: str,
+          country_code_adep: str,
+          ades: str,
+          country_code_ades: str,
+          aircraft_type: str,
+          wtc: str,
+          airline: str,
+          flight_duration: int64,
+          taxiout_time: int64,
+          flown_distance: int64,
+          tow: float64
+        all.random_state: 98
+        all.target: tow
+        feature_selection.fs_validation_frac: 0.05
+        feature_selection.input_path: data/processed/train.csv
+        feature_selection.output_path: models/selected_features.json
+    outs:
+    - path: models/selected_features.json
+      hash: md5
+      md5: 03bb75f5bd47e96b18af6ca4101f6ea1
+      size: 228
+  baseline_model:
+    cmd: python3 src/baseline_model.py
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 1e640f593c737c41f391e4081a79930c
+      size: 35749633
+    - path: src/baseline_model.py
+      hash: md5
+      md5: f0f5752880f1f6d5316cb30c9b6cb12c
+      size: 2212
+    params:
+      params.yaml:
+        all.categorical_features:
+        - adep
+        - country_code_adep
+        - ades
+        - country_code_ades
+        - aircraft_type
+        - wtc
+        - airline
+        all.dtypes:
+          flight_id: int64,
+          maximum_altitude: float64,
+          mean_altitude: float64,
+          mean_ground_speed: float64,
+          mean_vertical_rate: float64,
+          adep: str,
+          country_code_adep: str,
+          ades: str,
+          country_code_ades: str,
+          aircraft_type: str,
+          wtc: str,
+          airline: str,
+          flight_duration: int64,
+          taxiout_time: int64,
+          flown_distance: int64,
+          tow: float64
+        all.random_state: 98
+        all.target: tow
+        baseline_model.baseline_validation_frac: 0.05
+        baseline_model.input_path: data/processed/train.csv
+        baseline_model.output_path: models/baseline_model.pkl
+    outs:
+    - path: models/baseline_model.pkl
+      hash: md5
+      md5: c4b63f1440b5d8ebfe87d8fdb34901fb
+      size: 1494
+  predict_submission:
+    cmd: python3 src/predict_submission.py
+    deps:
+    - path: data/processed/flights_test.csv
+      hash: md5
+      md5: 0593450610d3c09ac6db765190f02079
+      size: 14833423
+    - path: models/catboost_model.pkl
+      hash: md5
+      md5: acab062421fe9188a0abac5e136716d3
+      size: 5410344
+    - path: src/predict_submission.py
+      hash: md5
+      md5: 8f7a08d7a7abf3b5eb7c41b9d6ad16fa
+      size: 1402
+    params:
+      params.yaml:
+        predict_submission.input_path.data: data/processed/flights_test.csv
+        predict_submission.input_path.model: models/catboost_model.pkl
+        predict_submission.output_path: data/processed/predictions_submission.csv
+    outs:
+    - path: data/processed/predictions_submission.csv
+      hash: md5
+      md5: 11ed9359d2601f2744335def0f4f03f9
+      size: 4445567
+  train_catboost:
+    cmd: python3 src/train_catboost.py
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 1e640f593c737c41f391e4081a79930c
+      size: 35749633
+    - path: data/processed/val.csv
+      hash: md5
+      md5: dd6bd2759ce42f087cd46d9e81cbab25
+      size: 729935
+    - path: models/selected_features.json
+      hash: md5
+      md5: 03bb75f5bd47e96b18af6ca4101f6ea1
+      size: 228
+    - path: src/train_catboost.py
+      hash: md5
+      md5: 06a04ba7b573cd240c1b939c95145810
+      size: 2390
+    params:
+      params.yaml:
+        all.categorical_features:
+        - adep
+        - country_code_adep
+        - ades
+        - country_code_ades
+        - aircraft_type
+        - wtc
+        - airline
+        all.dtypes:
+          flight_id: int64,
+          maximum_altitude: float64,
+          mean_altitude: float64,
+          mean_ground_speed: float64,
+          mean_vertical_rate: float64,
+          adep: str,
+          country_code_adep: str,
+          ades: str,
+          country_code_ades: str,
+          aircraft_type: str,
+          wtc: str,
+          airline: str,
+          flight_duration: int64,
+          taxiout_time: int64,
+          flown_distance: int64,
+          tow: float64
+        all.random_state: 98
+        all.target: tow
+        train_catboost.cv_folds: 3
+        train_catboost.early_stopping_rounds: 15
+        train_catboost.input_path.train_data: data/processed/train.csv
+        train_catboost.input_path.validation_data: data/processed/val.csv
+        train_catboost.output_path: models/catboost_model.pkl
+        train_catboost.params_grid:
+          border_count:
+          - 32
+          - 5
+          - 10
+          - 20
+          - 50
+          - 100
+          - 200
+          depth:
+          - 3
+          - 1
+          - 2
+          - 6
+          - 4
+          - 5
+          - 7
+          - 8
+          - 9
+          - 10
+          iterations:
+          - 250
+          - 100
+          - 500
+          - 1000
+          l2_leaf_reg:
+          - 3
+          - 1
+          - 5
+          - 10
+          - 100
+          learning_rate:
+          - 0.03
+          - 0.001
+          - 0.01
+          - 0.1
+          - 0.2
+          - 0.3
+        train_catboost.random_search_iters: 20
+    outs:
+    - path: models/catboost_model.pkl
+      hash: md5
+      md5: acab062421fe9188a0abac5e136716d3
+      size: 5410344
