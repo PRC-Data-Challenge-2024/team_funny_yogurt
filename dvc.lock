@@ -106,8 +106,8 @@ stages:
       size: 36584582
     - path: src/split_data.py
       hash: md5
-      md5: 9ba9dff901f5f8133ece8135b00e2134
-      size: 1034
+      md5: f810ddfef8866dd81bb4023c3ce51a52
+      size: 1149
     params:
       params.yaml:
         all.dtypes:
@@ -133,7 +133,12 @@ stages:
         split_data.output_path:
           train: data/processed/train.csv
           val: data/processed/val.csv
+          tow_mean: data/processed/tow_mean.txt
     outs:
+    - path: data/processed/tow_mean.txt
+      hash: md5
+      md5: 1e6d81a8a21702512d786e0eacdd4370
+      size: 17
     - path: data/processed/train.csv
       hash: md5
       md5: 1e640f593c737c41f391e4081a79930c
@@ -251,8 +256,8 @@ stages:
       size: 5410344
     - path: src/predict_submission.py
       hash: md5
-      md5: d326bb8f458412acbd5603d3d8b478a9
-      size: 1430
+      md5: 8f7a08d7a7abf3b5eb7c41b9d6ad16fa
+      size: 1402
     params:
       params.yaml:
         predict_submission.input_path.data: data/processed/flights_test.csv

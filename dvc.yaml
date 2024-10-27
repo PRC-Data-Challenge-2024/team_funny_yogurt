@@ -63,6 +63,10 @@ stages:
           persist: true
       - ${split_data.output_path.val}:
           persist: true
+      - ${split_data.output_path.tow_mean}:
+          persist: true
+          cache: false
+
   feature_selection:
     cmd: python3 src/feature_selection.py
     deps:

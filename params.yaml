@@ -59,6 +59,7 @@ split_data:
   output_path: 
     train: data/processed/train.csv
     val: data/processed/val.csv
+    tow_mean: data/processed/tow_mean.txt
   train_fraction: 0.98
 
 feature_selection:
@@ -93,7 +94,7 @@ predict_submission:
   input_path:
     model: models/catboost_model.pkl
     data: data/processed/flights_test.csv
-    train: data/processed/train.csv
+    tow_mean: data/processed/tow_mean.txt
     selected_features: models/selected_features.json
     submission: data/raw/final_submission_set.csv
   output_path: data/processed/predictions_submission.csv

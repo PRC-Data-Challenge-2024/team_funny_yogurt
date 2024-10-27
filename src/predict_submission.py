@@ -25,8 +25,8 @@ flight_id = data['flight_id']
 submission_data = pd.read_csv(INPUT_PATH['submission'])
 submission_ids = submission_data['flight_id']
 
-train_data = pd.read_csv(INPUT_PATH['train'])
-mean_tow = train_data['tow'].mean()
+with open(INPUT_PATH['tow_mean'], 'r') as file:
+    mean_tow = float(file.read())
 
 with open(INPUT_PATH['selected_features'], 'r') as f:
     selected_features = json.load(f)

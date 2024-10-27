@@ -31,9 +31,12 @@ data = pd.read_csv(
 
 train_data = data.sample(frac=TRAIN_FRACTION, random_state=RANDOM_STATE)
 val_data = data.drop(train_data.index)
+tow_mean = train_data['tow'].mean()
 
 train_data.to_csv(OUTPUT_PATH['train'], index=False)
 val_data.to_csv(OUTPUT_PATH['val'], index=False)
+with open(OUTPUT_PATH['tow_mean'], 'w') as file:
+    file.write(str(tow_mean))
 
 console.log(f"Samples in training set: {len(train_data)}")
 console.log(f"Samples in validation set: {len(val_data)}")
