@@ -13,16 +13,16 @@ stages:
     outs:
     - path: data/raw
       hash: md5
-      md5: c5d558a971ab553228499a8e7d1c9b23.dir
-      size: 170130869140
+      md5: 2c7d010422d14cbd4d1aefad53a81635.dir
+      size: 306493049022
       nfiles: 368
   cleaning:
     cmd: python3 src/cleaning.py
     deps:
     - path: data/raw
       hash: md5
-      md5: c5d558a971ab553228499a8e7d1c9b23.dir
-      size: 170130869140
+      md5: 2c7d010422d14cbd4d1aefad53a81635.dir
+      size: 306493049022
       nfiles: 368
     - path: src/cleaning.py
       hash: md5
@@ -35,16 +35,16 @@ stages:
     outs:
     - path: data/interim/clean_tracks
       hash: md5
-      md5: aca72256b5a6fb382bd4a305b1bd2fde.dir
-      size: 98217631261
+      md5: d1244441d24831ef4cac43514249c91d.dir
+      size: 116041291160
       nfiles: 364
   aggregate_tracks:
     cmd: python3 src/aggregate_tracks.py
     deps:
     - path: data/interim/clean_tracks
       hash: md5
-      md5: aca72256b5a6fb382bd4a305b1bd2fde.dir
-      size: 98217631261
+      md5: d1244441d24831ef4cac43514249c91d.dir
+      size: 116041291160
       nfiles: 364
     - path: src/aggregate_tracks.py
       hash: md5
@@ -57,42 +57,53 @@ stages:
     outs:
     - path: data/interim/aggregate_tracks
       hash: md5
-      md5: d1142dee983bc4d212755747976c7143.dir
-      size: 12959333
+      md5: 53fc85ccbab154e8e83b8dcd74f7cc24.dir
+      size: 18360123
       nfiles: 364
   merge_datasets:
     cmd: python3 src/merge_datasets.py
     deps:
     - path: data/interim/aggregate_tracks
       hash: md5
-      md5: d1142dee983bc4d212755747976c7143.dir
-      size: 12959333
+      md5: 53fc85ccbab154e8e83b8dcd74f7cc24.dir
+      size: 18360123
       nfiles: 364
     - path: data/raw/challenge_set.csv
       hash: md5
       md5: fad9443429290efeb4b959ab447e9308
       size: 70759721
+    - path: data/raw/final_submission_set.csv
+      hash: md5
+      md5: 992da3c2693aaeee1fa62c5731a1a37d
+      size: 29278198
     - path: src/merge_datasets.py
       hash: md5
-      md5: 32d46e36326b53a58fcd49712c837545
-      size: 1534
+      md5: fd2fc3b7fe060c9c36f1c3721807971d
+      size: 2059
     params:
       params.yaml:
-        merge_datasets.input_path.flight_list: data/raw/challenge_set.csv
+        merge_datasets.input_path.test_flight_list: data/raw/final_submission_set.csv
         merge_datasets.input_path.tracks: data/interim/aggregate_tracks
-        merge_datasets.output_path: data/processed/flights.csv
+        merge_datasets.input_path.train_flight_list: data/raw/challenge_set.csv
+        merge_datasets.output_path:
+          train: data/processed/flights_train.csv
+          test: data/processed/flights_test.csv
     outs:
-    - path: data/processed/flights.csv
+    - path: data/processed/flights_test.csv
       hash: md5
-      md5: 456ffe7b56c86d62889ba1d6b549d620
-      size: 46296819
+      md5: 0593450610d3c09ac6db765190f02079
+      size: 14833423
+    - path: data/processed/flights_train.csv
+      hash: md5
+      md5: 511d5341f54b68d26b511e6ed758e744
+      size: 36584582
   split_data:
     cmd: python3 src/split_data.py
     deps:
-    - path: data/processed/flights.csv
+    - path: data/processed/flights_train.csv
       hash: md5
-      md5: 456ffe7b56c86d62889ba1d6b549d620
-      size: 46296819
+      md5: 511d5341f54b68d26b511e6ed758e744
+      size: 36584582
     - path: src/split_data.py
       hash: md5
       md5: 9ba9dff901f5f8133ece8135b00e2134
@@ -118,26 +129,26 @@ stages:
           tow: float64
         all.random_state: 98
         all.target: tow
-        split_data.input_path: data/processed/flights.csv
+        split_data.input_path: data/processed/flights_train.csv
         split_data.output_path:
           train: data/processed/train.csv
           val: data/processed/val.csv
     outs:
     - path: data/processed/train.csv
       hash: md5
-      md5: ed91ac686c6fd46a5b6118031bd7b132
-      size: 45241740
+      md5: 1e640f593c737c41f391e4081a79930c
+      size: 35749633
     - path: data/processed/val.csv
       hash: md5
-      md5: d148757b3cba5b4a7b38b73994fdbf0d
-      size: 923406
+      md5: dd6bd2759ce42f087cd46d9e81cbab25
+      size: 729935
   feature_selection:
     cmd: python3 src/feature_selection.py
     deps:
     - path: data/processed/train.csv
       hash: md5
-      md5: ed91ac686c6fd46a5b6118031bd7b132
-      size: 45241740
+      md5: 1e640f593c737c41f391e4081a79930c
+      size: 35749633
     - path: src/feature_selection.py
       hash: md5
       md5: fa05ab5995f50c6a1e6ebfd5327d5bfa
@@ -169,11 +180,61 @@ stages:
           taxiout_time: int64,
           flown_distance: int64,
           tow: float64
+        all.random_state: 98
         all.target: tow
+        feature_selection.fs_validation_frac: 0.05
         feature_selection.input_path: data/processed/train.csv
         feature_selection.output_path: models/selected_features.json
     outs:
     - path: models/selected_features.json
       hash: md5
-      md5: 42821ee12579958d5bf73d8b0b29194f
-      size: 223
+      md5: 03bb75f5bd47e96b18af6ca4101f6ea1
+      size: 228
+  baseline_model:
+    cmd: python3 src/baseline_model.py
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 1e640f593c737c41f391e4081a79930c
+      size: 35749633
+    - path: src/baseline_model.py
+      hash: md5
+      md5: f0f5752880f1f6d5316cb30c9b6cb12c
+      size: 2212
+    params:
+      params.yaml:
+        all.categorical_features:
+        - adep
+        - country_code_adep
+        - ades
+        - country_code_ades
+        - aircraft_type
+        - wtc
+        - airline
+        all.dtypes:
+          flight_id: int64,
+          maximum_altitude: float64,
+          mean_altitude: float64,
+          mean_ground_speed: float64,
+          mean_vertical_rate: float64,
+          adep: str,
+          country_code_adep: str,
+          ades: str,
+          country_code_ades: str,
+          aircraft_type: str,
+          wtc: str,
+          airline: str,
+          flight_duration: int64,
+          taxiout_time: int64,
+          flown_distance: int64,
+          tow: float64
+        all.random_state: 98
+        all.target: tow
+        baseline_model.baseline_validation_frac: 0.05
+        baseline_model.input_path: data/processed/train.csv
+        baseline_model.output_path: models/baseline_model.pkl
+    outs:
+    - path: models/baseline_model.pkl
+      hash: md5
+      md5: c4b63f1440b5d8ebfe87d8fdb34901fb
+      size: 1494

@@ -41,8 +41,11 @@ aggregate_tracks:
 merge_datasets:
   input_path:
     tracks: data/interim/aggregate_tracks
-    flight_list: data/raw/challenge_set.csv
-  output_path: data/processed/flights.csv
+    train_flight_list: data/raw/challenge_set.csv
+    test_flight_list: data/raw/final_submission_set.csv
+  output_path: 
+    train: data/processed/flights_train.csv
+    test: data/processed/flights_test.csv
   cols_to_drop: [
     'date',
     'callsign',
@@ -52,7 +55,7 @@ merge_datasets:
     'arrival_time'
   ]
 split_data:
-  input_path: data/processed/flights.csv
+  input_path: data/processed/flights_train.csv
   output_path: 
     train: data/processed/train.csv
     val: data/processed/val.csv
@@ -62,3 +65,10 @@ feature_selection:
   input_path: data/processed/train.csv
   output_path: models/selected_features.json
   fs_validation_frac: 0.05
+
+baseline_model:
+  input_path: data/processed/train.csv
+  output_path: models/baseline_model.pkl
+  baseline_validation_frac: 0.05
+  hparams_grid:
+    alpha: [0.1, 0.5, 1.0, 2.0, 5.0, 10.0]

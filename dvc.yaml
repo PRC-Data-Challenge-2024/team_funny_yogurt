@@ -35,13 +35,17 @@ stages:
     deps:
       - src/merge_datasets.py
       - ${merge_datasets.input_path.tracks}
-      - ${merge_datasets.input_path.flight_list}
+      - ${merge_datasets.input_path.train_flight_list}
+      - ${merge_datasets.input_path.test_flight_list}
     params:
       - merge_datasets.output_path
       - merge_datasets.input_path.tracks
-      - merge_datasets.input_path.flight_list
+      - merge_datasets.input_path.train_flight_list
+      - merge_datasets.input_path.test_flight_list
     outs:
-      - ${merge_datasets.output_path}:
+      - ${merge_datasets.output_path.train}:
+          persist: true
+      - ${merge_datasets.output_path.test}:
           persist: true
   split_data:
     cmd: python3 src/split_data.py
@@ -67,9 +71,28 @@ stages:
     params:
       - feature_selection.output_path
       - feature_selection.input_path
+      - feature_selection.fs_validation_frac
+      - all.random_state
       - all.dtypes
       - all.categorical_features
       - all.target
     outs:
       - ${feature_selection.output_path}:
+          persist: true
+          cache: false
+  baseline_model:
+    cmd: python3 src/baseline_model.py
+    deps:
+      - src/baseline_model.py
+      - ${baseline_model.input_path}
+    params:
+      - baseline_model.output_path
+      - baseline_model.input_path
+      - baseline_model.baseline_validation_frac
+      - all.random_state
+      - all.dtypes
+      - all.categorical_features
+      - all.target
+    outs:
+      - ${baseline_model.output_path}:
           persist: true
