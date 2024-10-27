@@ -27,7 +27,8 @@ if not os.path.exists(os.path.dirname(params["output_path"]["test"])):
     os.makedirs(os.path.dirname(params["output_path"]["test"]))
 
 PARQUET_FILES = [
-    file for file in os.listdir(TRACKS_PATH) if file.endswith(".parquet")]
+    file for file in os.listdir(TRACKS_PATH) if file.endswith(".parquet")
+]
 PARQUET_FILES.sort()
 
 n_files = len(PARQUET_FILES)
@@ -35,21 +36,22 @@ n_files = len(PARQUET_FILES)
 console.log(f"Found {len(PARQUET_FILES)} files in {TRACKS_PATH}")
 console.rule("Starting dataset merging process...")
 
-for split, path in zip(['train', 'test'],
-                       [TRAIN_FLIGHT_LIST_PATH, TEST_FLIGHT_LIST_PATH]):
+for split, path in zip(
+    ["train", "test"], [TRAIN_FLIGHT_LIST_PATH, TEST_FLIGHT_LIST_PATH]
+):
     flight_list_data = pl.read_csv(path)
     flight_list_data = flight_list_data.drop(COLS_TO_DROP)
     merged_data = pl.DataFrame()
 
-    for file in track(PARQUET_FILES, description=f"Merging {split} datasets..."
-            ):
+    for file in track(
+        PARQUET_FILES, description=f"Merging {split} datasets..."
+    ):
         tracks = pl.read_parquet(os.path.join(TRACKS_PATH, file))
-        tracks = tracks.with_columns(
-            tracks["flight_id"].cast(pl.Int64))
+        tracks = tracks.with_columns(tracks["flight_id"].cast(pl.Int64))
         # Left join from tracks to flight list on flight_id
         merged = tracks.join(flight_list_data, on="flight_id", how="left")
         merged_data = pl.concat([merged_data, merged])
-    if split == 'train':
+    if split == "train":
         merged_data = merged_data.drop_nulls(subset=["tow"])
     else:
         merged_data = merged_data.drop_nulls(subset=["flown_distance"])
